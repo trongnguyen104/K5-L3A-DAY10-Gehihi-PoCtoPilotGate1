@@ -3,22 +3,39 @@
   "business": {
     "daily_refund_cap_vnd": null,
     "cost_budget_per_ticket_vnd": null,
-    "pilot_scope": {"mode": "all", "warehouses": [], "percent": 100},
+    "pilot_scope": {
+      "mode": "all",
+      "warehouses": [],
+      "percent": 100
+    },
     "roi_min": null
   },
   "operations": {
-    "pic": "",
-    "approver_id": "",
+    "pic": "NV-TUNG",
+    "approver_id": "NV-HANH",
     "reviewers_on_shift": 1,
-    "review_capacity_per_hour": null,
-    "max_queue_wait_minutes": null,
-    "stop_conditions": [],
-    "alert_channel": "",
-    "decision_note": false,
-    "review_sampling_pct": 0
+    "review_capacity_per_hour": 6,
+    "max_queue_wait_minutes": 45,
+    "stop_conditions": [
+      "Khi có 1 lần lộ dữ liệu cá nhân cho hãng (pii_leaks >= 1) thì NV-TUNG tắt notify_carrier ngay, rà lại các thông báo đã gửi trong ngày",
+      "Khi có 1 lỗi ghi oan cho hãng (wrongful_carrier_faults >= 1) thì NV-TUNG tắt file_carrier_fault, mọi ca ghi lỗi hãng chuyển NV-OANH đối soát tay",
+      "Khi một hãng sắp bị ghi lỗi tự động thứ 3 trong ngày (ops_limits.max_auto_strikes_per_carrier_per_day = 2) thì không ghi tự động nữa, chuyển NV-HANH duyệt",
+      "Khi tổng hoàn tự động trong ngày chạm business.daily_refund_cap_vnd hoặc có tiền hoàn sai vượt wrongful_refund_vnd_max đã ký thì NV-TUNG tắt issue_refund, ticket còn lại chuyển NV-HANH duyệt tay",
+      "Khi có ca chờ người duyệt quá 45 phút hoặc có 1 ca bị ùn (quá SLA 60 phút) thì gọi thêm 1 người trực; sau 30 phút vẫn ùn thì thu hẹp pilot_scope về một kho",
+      "Khi chi phí mỗi ticket vượt 10.000đ (làm tay) hoặc ROI dưới roi_min hai ngày liên tiếp thì Dừng pilot, toàn bộ ticket quay về quy trình làm tay"
+    ],
+    "alert_channel": "Slack #logix-refund-pilot-alert (tin đỏ: gọi điện trực tiếp NV-TUNG)",
+    "decision_note": true,
+    "review_sampling_pct": 10
   },
   "legal": {
-    "pii_fields_blocked_to_third_party": [],
-    "carrier_fault_requires_recorded_cause": false
+    "pii_fields_blocked_to_third_party": [
+      "recipient_contact",
+      "customer_note",
+      "name",
+      "phone",
+      "street"
+    ],
+    "carrier_fault_requires_recorded_cause": true
   }
 }
