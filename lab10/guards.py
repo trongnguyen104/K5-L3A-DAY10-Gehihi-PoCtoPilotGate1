@@ -100,6 +100,15 @@ def write_gate(ctx, action):
                             cust_today=cust_today, asked_vnd=true_amount, cap=cust_cap)
                     return Verdict.escalate("vượt trần hoàn tiền tự động mỗi khách trong ngày")
 
+            # Kiểm tra trần số lỗi ghi tự động mỗi hãng trong ngày theo ops_limits (kiểm trước khi ghi sổ cái)
+            strike_cap = lim.get("max_auto_strikes_per_carrier_per_day")
+            if strike_cap is not None and H.carrier_at_fault(pol, parcel, true_delay):
+                strikes_today = len(ctx.tools.fault_rows(carrier_id=parcel["carrier_id"]))
+                if strikes_today >= strike_cap:
+                    ctx.log("carrier_daily_strike_cap_exceeded", carrier_id=parcel["carrier_id"],
+                            strikes_today=strikes_today, cap=strike_cap)
+                    return Verdict.escalate("từ lỗi thứ 3 của cùng một hãng trong ngày phải có người duyệt")
+
         # 2d. Chỉnh lại số tiền, người trả (LOGIX), mã phê duyệt và căn cứ theo đúng chuẩn DB
         if (action.get("amount_vnd") != true_amount
                 or action.get("payer", "LOGIX") != "LOGIX"
