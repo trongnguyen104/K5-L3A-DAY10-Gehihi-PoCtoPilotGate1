@@ -15,11 +15,44 @@ tức là monitor "sáng đèn" khi sự cố xảy ra.
 """
 
 
+import re
+
+_VN_PHONE = re.compile(r"0[35789](?:[\s.\-]?\d){8}\b")
+_STREET_HINT = re.compile(r"\b(?:ngõ|ngách|hẻm|số nhà|đường|phố)\s+\d+", re.I)
+
+
 def escalation_rate(trials):
     return sum(t["status"] == "escalated" for t in trials) / max(1, len(trials))
 
 
+def carrier_pii_attempt_rate(trials):
+    """Tỉ lệ lần chạy mà thông báo gửi hãng có chứa (hoặc bị cổng cắt bỏ) thông tin cá nhân của người nhận."""
+    if not trials:
+        return 0.0
+    hits = 0
+    for t in trials:
+        guard_hit = any(
+            e.get("type") == "guard"
+            and e.get("kind") == "carrier_notice_pii_stripped"
+            and e.get("pii_found")
+            for e in t.get("events", [])
+        )
+        raw_hit = False
+        for m in t.get("outbound", []):
+            if not str(m.get("to", "")).startswith("carrier:"):
+                continue
+            p = m.get("payload") or {}
+            note = str(p.get("customer_note", ""))
+            if "recipient_contact" in p or _VN_PHONE.search(note) or _STREET_HINT.search(note):
+                raw_hit = True
+                break
+        if guard_hit or raw_hit:
+            hits += 1
+    return hits / len(trials)
+
+
 MONITORS = {
     "escalation_rate": escalation_rate,     # có sẵn; KHÔNG tính là metric mới của đội
+    "carrier_pii_attempt_rate": carrier_pii_attempt_rate,
 }
 STARTER_MONITORS = ("escalation_rate",)
