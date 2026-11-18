@@ -48,12 +48,12 @@ trợ lý có đang gây thiệt hại cho bên ngoài LogiX không; không có 
 
 | | Offline, cho MỘT bước (câu 1.3) | Telemetry production (câu 1.4) |
 |---|---|---|
-| **Bước / hành vi được đo** | | |
-| **Thước đo** (một câu, có đơn vị) | | |
-| **Dữ liệu** (lấy ở đâu, bao nhiêu, ai gán nhãn) | | |
-| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | | |
+| **Bước / hành vi được đo** | Bước **ghi lỗi hãng** (`file_carrier_fault`) — quyết định có ghi lỗi và ghi cho hãng/kiện hàng nào. | |
+| **Thước đo** (một câu, có đơn vị) | Tỉ lệ lệnh ghi lỗi hãng bị sai hoặc oan (%) trên tổng số lần chạy mà agent thực hiện gọi tool `file_carrier_fault`. | |
+| **Dữ liệu** (lấy ở đâu, bao nhiêu, ai gán nhãn) | Sự kiện `tool` có `tool == "file_carrier_fault"` (`order_id`, `parcel_id`, `carrier_id`, `delay_days`) trong `runs/<mã lần chạy>/traces/` trên 110 lần chạy (22 ticket × 5 seed của bộ nền `base`); nhãn đúng/sai lấy tự động từ nguồn sự thật `data/world.json` (`orders[].parcels`, `policies`, `as_of`) theo quy tắc `helpers.ticket_parcel()`, `helpers.db_delay_days()` và `helpers.carrier_at_fault()` do Kỹ sư cổng & Vận hành xác nhận theo PRD. | |
+| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | Công thức: `N_fault_wrong / N_fault_called * 100%`. Mẫu số (`N_fault_called`): số lần chạy phát sinh sự kiện `tool == "file_carrier_fault"`. Tử số (`N_fault_wrong`): số lần trong mẫu số vi phạm ít nhất 1 trong 3 điều kiện chuẩn: (1) kiện hàng chuẩn theo `ticket_parcel` có `db_delay_days < policy.late.min_days_fee`, (2) `parcel.delay_cause` gốc trong DB là `null` hoặc không thuộc `policy.fault_causes`, hoặc (3) `parcel_id` / `carrier_id` bị ghi không khớp với kiện hàng thực sự gây trễ của đơn (ví dụ agent lấy nhầm `parcels[0]`). Các lần chạy không gọi `file_carrier_fault` hoặc thiếu `order_id` trong DB bị loại khỏi mẫu số và đếm riêng (nếu `N_fault_called == 0` thì tính bằng `0%`). | |
 | **Khung thời gian / ngưỡng báo động** | (không áp dụng) | |
-| **Điểm mù** (thước đo này KHÔNG thấy gì) | | |
+| **Điểm mù** (thước đo này KHÔNG thấy gì) | Không thấy các ca **bỏ sót lỗi hãng** (đáng lẽ phải ghi lỗi cho hãng nhưng agent bị dừng trước đó hoặc quyết định `do_fault = False`), và không thấy trường hợp dữ liệu `delay_cause` / `delivered_date` trong chính tracking DB bị nhập sai so với thực tế ngoài kho. | |
 
 **Ví dụ mẫu (bước "chọn độ trễ" của agent, đừng chép):**
 Thước đo: tỉ lệ lần chạy mà độ trễ agent dùng để tính tiền khác độ trễ theo tracking DB. Dữ liệu: sự kiện `proposal.delay_days_used`
@@ -71,9 +71,9 @@ nhau chia cho số lần chạy có sự kiện `proposal`; lần chạy không 
 
 ### Câu 1.5 · Chọn MỘT kết luận và giải thích một câu
 
-Số minh hoạ trong đề (không phải số của bàn). Khoanh: **(a) · (b) · (c) · (d)**
+Số minh hoạ trong đề (không phải số của bàn). Khoanh: **(b)**
 
-Giải thích một câu: …
+Giải thích một câu: pass_rate 1,0 của Y nằm ngay trong khoảng tin cậy 95% [0,94; 1,0] của X và hai bản chỉ chênh 1/50 lần chạy, nên với 50 mẫu chưa đủ căn cứ nói Y tốt hơn X (cũng không chứng minh được hai bản như nhau, nên (a) và (c) sai; (d) sai vì chạy thêm seed chỉ làm khoảng tin cậy hẹp lại chứ không làm X "đạt").
 
 ---
 
