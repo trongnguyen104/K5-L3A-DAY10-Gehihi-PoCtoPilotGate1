@@ -120,24 +120,24 @@ Gợi ý: mở `data/world.json` phần `policies`, `orders[].parcels`, `ops_lim
 
 | Mục | Điền cho trợ lý hoàn tiền |
 |---|---|
-| Người dùng | |
-| Việc người dùng cần làm xong | |
-| Đầu ra của hệ thống (kể cả các lệnh ghi) | |
-| Dữ liệu trợ lý đọc lúc chạy (bảng nào trong `data/world.json`) | |
-| Trường then chốt quyết định tiền và lỗi hãng | |
-| Với mỗi trường then chốt: **nguồn sự thật** hay **bản sao** (ai cập nhật, khi nào)? | |
-| Định dạng cần để ý (ngày, trường được phép trống, đơn nhiều kiện) | |
-| Thế giới thật làm dữ liệu lệch ở đâu (theo mùa, đổi chính sách, giờ cao điểm, người nhập tay)? | |
-| Câu người ngoài sẽ hỏi về nguồn dữ liệu ("sao hệ thống biết đơn trễ mấy ngày?") | |
+| Người dùng | Nhân viên CSKH LogiX-VN tiếp nhận yêu cầu hoàn tiền của khách hàng; khách hàng là người nhận quyền lợi cuối cùng. |
+| Việc người dùng cần làm xong | Xác minh đơn hàng có giao trễ hay không, xác định khách có đủ điều kiện hoàn tiền không, tính đúng số tiền và xử lý yêu cầu nhanh chóng. |
+| Đầu ra của hệ thống (kể cả các lệnh ghi) | Đề xuất số tiền hoàn, giải thích căn cứ chính sách, chuyển ca cho nhân viên duyệt khi cần, ghi nhận khoản hoàn vào sổ cái và thông báo cho khách/hãng vận chuyển. |
+| Dữ liệu trợ lý đọc lúc chạy (bảng nào trong `data/world.json`) | policies: chính sách hoàn tiền; orders[].parcels: thông tin đơn hàng và kiện hàng; ops_limits: giới hạn vận hành và tài chính; ops_facts: dữ liệu thực tế về hoạt động kinh doanh. |
+| Trường then chốt quyết định tiền và lỗi hãng | parcels[].delivered_date, thông tin thời gian giao hàng, mã đơn/kiện, chính sách hoàn tiền áp dụng và bằng chứng tracking xác định trách nhiệm hãng. |
+| Với mỗi trường then chốt: **nguồn sự thật** hay **bản sao** (ai cập nhật, khi nào)? | Chính sách chính thức là nguồn sự thật về điều kiện hoàn tiền; tracking của hãng là nguồn dữ liệu xác minh quá trình giao hàng. Dữ liệu hiển thị trên ticket hoặc bản sao trong hệ thống trợ lý cần được đối chiếu với nguồn gốc. |
+| Định dạng cần để ý (ngày, trường được phép trống, đơn nhiều kiện) | Ngày giao hàng phải thống nhất định dạng; trường ngày giao có thể trống nếu chưa giao; một đơn hàng có thể gồm nhiều kiện với thời gian giao khác nhau. |
+| Thế giới thật làm dữ liệu lệch ở đâu (theo mùa, đổi chính sách, giờ cao điểm, người nhập tay)? | Chính sách khuyến mại thay đổi theo mùa, hãng vận chuyển cập nhật trạng thái chậm, nhân viên nhập dữ liệu thủ công, lượng đơn tăng mạnh vào ngày sale và chính sách áp dụng giữa các thời điểm khác nhau. |
+| Câu người ngoài sẽ hỏi về nguồn dữ liệu ("sao hệ thống biết đơn trễ mấy ngày?") | "LogiX dựa vào đâu để kết luận đơn hàng giao trễ và xác định khách được hoàn bao nhiêu tiền? Dữ liệu đó có được cập nhật theo chính sách mới nhất không?" |
 
 **Tóm lại (điền vào chỗ trống):**
-Trợ lý dùng `__________`, `__________`, `__________` để giúp `__________` làm được `__________`.
-Trường mà nếu sai thì tiền hoặc lỗi hãng sai theo: `__________`, `__________`.
-Chúng tôi biết thế giới thật sẽ làm dữ liệu lệch ở: `__________`. Dấu hiệu nhìn thấy sớm nhất: `__________`.
+Trợ lý dùng `policies`, `orders[].parcels`, `ops_limits` để giúp `nhân viên CSKH` làm được `việc xác minh đơn giao trễ và xử lý yêu cầu hoàn tiền chính xác, đúng chính sách`.
+Trường mà nếu sai thì tiền hoặc lỗi hãng sai theo: `parcels[].delivered_date`, `thông tin chính sách hoàn tiền áp dụng`.
+Chúng tôi biết thế giới thật sẽ làm dữ liệu lệch ở: `thời điểm cập nhật chính sách hoàn tiền và trạng thái giao hàng từ các hãng vận chuyển`. Dấu hiệu nhìn thấy sớm nhất: `số lượng ticket có chênh lệch giữa số ngày giao trễ trên hệ thống và dữ liệu tracking thực tế tăng lên`.
 
-**Ví dụ drift trong 3 tháng tới** (lấy từ dòng "thế giới thật làm dữ liệu lệch"): cái gì đổi `____` · đổi ngày nào `____` ·
-trường nào cho thấy `____` · con số nào của Bản tiêu chí bị ảnh hưởng `____`.
-Đây là đầu vào đổi hay quan hệ vào–ra đổi? Chỉ số nào sẽ phát hiện? `__________`
+**Ví dụ drift trong 3 tháng tới** (lấy từ dòng "thế giới thật làm dữ liệu lệch"): cái gì đổi `LogiX thay đổi chính sách hoàn tiền do giao hàng trễ trong chương trình khuyến mại cuối năm` · đổi ngày nào `Ngày 01/12/2026` ·
+trường nào cho thấy `Phiên bản và điều kiện áp dụng trong policies; thời gian giao thực tế trong orders[].parcels[].delivered_date` · con số nào của Bản tiêu chí bị ảnh hưởng `pass_rate, wrongful_refund_vnd, cost_per_ticket_vnd_max và ROI`.
+Đây là đầu vào đổi hay quan hệ vào–ra đổi? Chỉ số nào sẽ phát hiện? `Đây là drift dữ liệu đầu vào (input/data drift) do phiên bản chính sách thay đổi. Đồng thời, quy tắc ánh xạ từ dữ liệu đầu vào sang số tiền hoàn cũng thay đổi theo chính sách mới. Chỉ số phát hiện: wrongful_refund_vnd(phát hiện giá trị hoàn sai), pass_rate(phát hiện tỷ lệ xử lý đúng giảm), policy_version_mismatch (đề xuất bổ sung để phát hiện phiên bản chính sách trợ lý sử dụng không khớp phiên bản đang có hiệu lực).`
 
 **Ví dụ một dòng (đừng chép):** trường then chốt `parcels[].delivered_date` · bản ghi do máy quét ở điểm phát tạo ra, là nguồn
 sự thật về ngày giao · lệch khi điểm phát quét sót hoặc nhập bù bằng tay.
