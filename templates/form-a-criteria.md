@@ -71,9 +71,9 @@ nhau chia cho số lần chạy có sự kiện `proposal`; lần chạy không 
 
 ### Câu 1.5 · Chọn MỘT kết luận và giải thích một câu
 
-Số minh hoạ trong đề (không phải số của bàn). Khoanh: **(a) · (b) · (c) · (d)**
+Số minh hoạ trong đề (không phải số của bàn). Khoanh: **(b)**
 
-Giải thích một câu: …
+Giải thích một câu: pass_rate 1,0 của Y nằm ngay trong khoảng tin cậy 95% [0,94; 1,0] của X và hai bản chỉ chênh 1/50 lần chạy, nên với 50 mẫu chưa đủ căn cứ nói Y tốt hơn X (cũng không chứng minh được hai bản như nhau, nên (a) và (c) sai; (d) sai vì chạy thêm seed chỉ làm khoảng tin cậy hẹp lại chứ không làm X "đạt").
 
 ---
 
