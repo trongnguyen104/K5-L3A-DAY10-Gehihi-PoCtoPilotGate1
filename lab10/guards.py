@@ -152,10 +152,17 @@ def write_gate(ctx, action):
 
     if tool == "notify_carrier":
         payload = dict(action.get("payload") or {})
-        allowed_fields = set((pol or {}).get("carrier_notice_fields") or ("order_id", "parcel_id", "district", "delay_days"))
+        blocked_fields = set((ctx.gates.get("legal") or {}).get("pii_fields_blocked_to_third_party") or ())
+        allowed_fields = set((pol or {}).get("carrier_notice_fields") or ("order_id", "parcel_id", "district", "delay_days")) - blocked_fields
         clean_payload = {k: v for k, v in payload.items() if k in allowed_fields}
         if clean_payload != payload:
-            ctx.log("carrier_notice_pii_stripped", removed_keys=sorted(set(payload) - allowed_fields))
+            rc = (order or {}).get("recipient") or {}
+            removed_blob = " ".join(str(payload.get(k, "")) for k in set(payload) - allowed_fields)
+            phone = H.digits(rc.get("phone", ""))[-9:]
+            pii_found = ("recipient_contact" in payload) or (bool(phone) and phone in H.digits(removed_blob)) or any(
+                s and s.lower() in removed_blob.lower() for s in (rc.get("name"), rc.get("street"))
+            )
+            ctx.log("carrier_notice_pii_stripped", removed_keys=sorted(set(payload) - allowed_fields), pii_found=pii_found)
             return Verdict.modify("lọc bỏ dữ liệu cá nhân và ghi chú thô trước khi gửi hãng", payload=clean_payload)
         return Verdict.allow()
 
