@@ -71,21 +71,28 @@ Vai trò: **Kỹ sư cổng**.
 
 ### Đóng góp cụ thể
 
-- `CÁC NHÁNH GUARD.`
-- `CÁC TEST/TRACE.`
-- `XỬ LÝ THẺ S7.`
+- **Cổng vòng 1** trong `lab10/guards.py` (`d5818b5`):
+  - Ghim phiên bản chính sách theo ngày.
+  - `issue_refund`: tính lại số được hoàn từ DB, chặn hoàn trùng, chuyển người duyệt khi vượt hạn mức hoặc vượt trần.
+  - `file_carrier_fault`: chỉnh lỗi hãng theo tracking.
+  - `notify_carrier`: chỉ giữ các trường được phép, đưa `pii_leaks` của S7 từ 30 về 0.
+- **Vòng 2 cho S7** (`591c0ae`):
+  - `notify_carrier` trừ thêm `pii_fields_blocked_to_third_party` và ghi `pii_found`.
+  - Viết monitor mới `carrier_pii_attempt_rate`, kết quả 0 → 0,75, sáng đèn ở grade.
+- **Phiếu:** A câu 1.3; B mục B0–B1, B6 (phần cổng), B7.1–B7.3; C mục C7–C10.
+- **Kết quả:** `pass_rate` 1,0, `pii_leaks` 0, regression 0,9909 → 1,0, không hỏng ca hợp lệ `S7-05` và `S7-06`.
 
 ### Bằng chứng
 
-- Mã commit: `a6c51beeeb0d3ba077b509fa04a734547214706e`.
-- File/nhánh code: `lab10/guards.py`.
-- Mã lần chạy: `[BỔ SUNG MÃ RUN/TRACE THỰC TẾ]`.
-- Dòng/ô phiếu: `[BỔ SUNG MỤC PHIẾU THỰC TẾ]`.
+- Mã commit: `d5818b5` (cổng vòng 1 + Phiếu B), `591c0ae` (cổng và monitor vòng 2 + Phiếu C), `96b8968` (Phiếu A câu 1.3). PR đã merge: `a6c51be` (#9).
+- File/nhánh code: `lab10/guards.py` (`pre_guard`, `write_gate` với các nhánh `issue_refund`, `file_carrier_fault`, `notify_carrier`), `lab10/monitors.py` (`carrier_pii_attempt_rate`). Nhánh git `NguyenTienCuong_2A202603425`.
+- Mã lần chạy: after `R-S7-after-20261119-011553-d85519`, grade `R-S7-grade-20261119-011800-d85519` (dùng trong C9). Bộ chạy trong bài nộp: `R-S7-grade-20261119-101355-935233` (`submission/runs/`).
+- Dòng/ô phiếu: Phiếu A câu 1.3; Phiếu B mục B0, B1, B6 (phần cổng), B7.1–B7.3; Phiếu C mục C7, C8, C9, C10 (và một phần C0, C12).
 
 ### Exit ticket
 
-- Điều học được: `Chưa có`.
-- Điều còn chưa chắc: `Chưa có`.
+- Điều học được: Cổng nên tính lại mọi con số từ nguồn sự thật (DB, tracking, sổ cái) thay vì tin con số model đưa ra. Với dữ liệu gửi ra ngoài, lọc theo danh sách trắng ngăn được hẳn, còn regex chỉ dùng để đo, không dùng để chặn.
+- Điều còn chưa chắc: Monitor `carrier_pii_attempt_rate` dùng regex SĐT và địa chỉ tiếng Việt, nên có thể bỏ sót cách viết lạ (ví dụ "không chín một hai…") hoặc báo nhầm với dãy số là mã vận đơn. Ngoài ra, cổng chỉ lọc theo tên khoá, nên chưa xử lý được trường hợp trường được phép như `district` bị nhập lẫn PII.
 
 ---
 
@@ -126,27 +133,31 @@ Vai trò: **Vận hành và pháp lý**.
 ### Phần việc phụ trách
 
 Vai trò: **Kỹ sư cổng**.
-
 - Phối hợp với Nguyễn Tiến Cường triển khai, rà soát và kiểm thử `lab10/guards.py`; phân chia rõ phần code để tránh trùng lặp.
-- Phụ trách hoặc phối hợp phần trace và kiểm thử các ticket biên bằng `python -m lab10.trace`, bao gồm kiểm tra hành vi phân loại intent, truy xuất tracking, đề xuất hoàn tiền, ghi lỗi hãng và thông báo hãng.
-- Phụ trách hoặc phối hợp `lab10/monitors.py`: bổ sung ít nhất một monitor mới ở vòng 2, đăng ký trong dict `MONITORS`, kiểm tra monitor trên bộ incident.
-- Chạy unit tests, regression và các lệnh `lab10.grade --incident S7`; báo lại lỗi và bằng chứng cho cả bàn.
-- Phối hợp đánh giá bộ lọc PII và tính đúng đắn của parcel/carrier trước khi ghi lỗi hoặc gửi thông báo.
+- Phân tích lỗi bằng trace: soát lỗi ticket `T-002@55` ở vòng 1 và các ticket của thẻ S7 ở vòng 2 bằng `python -m lab10.trace`, chỉ ra bước nào, tool nào gây tác hại để kỹ sư cổng còn lại (Nguyễn Tiến Cường) viết nhánh chặn trong `lab10/guards.py` và monitor trong `lab10/monitors.py`.
+- Phụ trách Phiếu C cho thẻ S7, từ mục C0 đến C6: nhật ký lần chạy, đối chiếu mốc prepared với pre-mortem, bảng soát lỗi, phần riêng của S7, HAZOP, specification và giả định môi trường, fault tree trước khi sửa.
+- Phụ trách Phiếu B mục B2 (bảng soát lỗi `T-002@55`, câu 2.2) và Phiếu A câu 1.6.
 
 ### Đóng góp cụ thể
 
-- `CÁC TRACE/TEST ĐÃ TỰ CHẠY; TICKET, ORDER, CUSTOMER VÀ KẾT QUẢ.`
-- `MONITOR MỚI ĐÃ VIẾT, CÔNG THỨC/TÊN CHỈ SỐ VÀ KẾT QUẢ.`
-- `CÁC LỖI ĐÃ PHÁT HIỆN VÀ CÁCH PHỐI HỢP SỬA.`
+- **Phiếu A, câu 1.6** (commit `8572e40`).
+- **Phiếu B mục B2, bảng soát lỗi `T-002@55`** (commit `8d0debb`, `3cf2e5b`): làm rõ vì sao chị Oanh và hãng VNX coi khoản hoàn 20.000đ cho đơn `O-1002` là lỗi. Tracking ghi trễ 2 ngày, nhưng REFUND-v3 cần trễ từ 3 ngày mới hoàn phí, còn hãng thì bị ghi lỗi trễ 5 ngày.
+- **Phiếu C cho thẻ S7, mục C0–C6** (commit `8446dc2`, +83/−46 dòng):
+  - C0–C1: ghi lần chạy prepared `R-S7-prepared-20261119-002326-f3266d` và so với base. Cổng vòng 1 (Cổng 3, nhánh `notify_carrier` trong `write_gate`) đưa `pii_leaks` từ 30 về 0 và `pass_rate` từ 0,25 lên 1,0. Hai điều bàn chưa nghĩ tới ở pre-mortem: PII nằm cả ở đơn không phải quà tặng, và chưa có chỉ số nào theo dõi PII.
+  - C2: trace `S7-01@11`, `S7-20@11`, `S7-04@11`, tìm ra hai đường lộ dữ liệu. Một là `customer_note` bị chép nguyên văn từ ticket sang hãng. Hai là agent tự gắn `recipient_contact` khi `is_gift: true`.
+  - C3–C4: phần riêng của S7 và HAZOP trên tool `notify_carrier`, gồm hai nhánh bàn chưa thấy trên trace: `carrier_notice_fields` thiếu hoặc bị nới, và trường `district` được phép gửi nhưng bị nhập lẫn SĐT.
+  - C5: viết specification kiểm được bằng code (payload gửi hãng chỉ có 4 khoá được phép) và giả định môi trường có thể sai: người nhận là bên thứ ba không đồng ý gì, và hãng dùng dữ liệu để gọi điện.
+  - C6: dựng fault tree trước khi sửa, đỉnh là `pii_leaks = 30/40` lần chạy ở base.
+- Không viết code trong `lab10/`. Phần code guards và monitor `carrier_pii_attempt_rate` do Nguyễn Tiến Cường commit (`d5818b5`, `591c0ae`). Phần của tôi là phân tích trace và phiếu làm căn cứ cho phần code đó.
 
 ### Bằng chứng
 
-- Mã commit: `b7efaeb26c406004e8675144ca7852530c8ff6e0`.
-- File phụ trách/phối hợp: `lab10/guards.py`, `lab10/monitors.py`, `tests/`.
-- Mã lần chạy/trace/grade: `MÃ RUN/TRACE/GRADE`.
-- Dòng/ô phiếu: `BỔ SUNG B2, B7.1–B7.3, B7.6, C2, C6–C9`.
+- Mã commit: `8446dc2` (Phiếu C, S7), `8d0debb` và `3cf2e5b` (Phiếu B, B2), `8572e40` (Phiếu A, câu 1.6). PR đã merge: `b7efaeb` (#8), `5af0bee` (#7).
+- File phụ trách: `templates/form-c-incident.md`, `templates/form-b-evaluation-gates.md`, `templates/form-a-criteria.md`.
+- Mã lần chạy: base `R-S7-before-20261119-002326-f3266d`, prepared `R-S7-prepared-20261119-002326-f3266d`, grade `R-S7-grade-20261119-002326-f3266d` (dùng trong C1, C6). Bộ chạy trong bài nộp: `R-S7-grade-20261119-101355-935233` (`submission/runs/`). Trace: `S7-01@11`, `S7-02@11`, `S7-03@11`, `S7-04@11`, `S7-20@11`.
+- Dòng/ô phiếu: Phiếu A câu 1.6; Phiếu B mục B2; Phiếu C mục C0 (dòng 1), C1, C2, C3 (phần S7), C4, C5, C6.
 
 ### Exit ticket
 
-- Điều học được: `Chưa có`.
-- Điều còn chưa chắc: `Chưa có`.
+- Điều học được: Cổng lọc theo danh sách trắng ngăn được hẳn tác hại, tốt hơn dò PII bằng regex. Nhưng chặn thôi chưa đủ: nếu không có chỉ số theo dõi thì cổng có lọt cũng không ai biết, phải đợi người bị hại khiếu nại.
+- Điều còn chưa chắc: Cổng hiện chỉ lọc theo tên khoá, không đọc nội dung. Nếu trường được phép như `district` bị nhập lẫn SĐT hay địa chỉ chi tiết thì PII vẫn có thể lọt. Tôi chưa chắc cách nào kiểm nội dung mà không làm hỏng ca hợp lệ như `S7-05` (dãy số là mã vận đơn).
