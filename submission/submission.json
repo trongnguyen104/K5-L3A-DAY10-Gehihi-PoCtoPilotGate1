@@ -1,12 +1,12 @@
 {
-  "team": "",
-  "members": [],
-  "incident": "",
-  "decision_v1": "",
-  "decision_v2": "",
+  "team": "K5-L3A-DAY10-Gehihi-PoCtoPilotGate1",
+  "members": ["NguyenDucTrong-2A202603367", "NguyenTienCuong-2A202603425", "PhamCongDung-2A202603428", "LyThanhLap-2A202603414"],
+  "incident": "S7",
+  "decision_v1": "Tiếp tục",
+  "decision_v2": "Thu hẹp",
   "three_lines": {
-    "environment_assumption": "",
-    "reduce_or_prevent": "",
-    "measure_in_pilot": ""
+    "environment_assumption": "Thiết kế đang giả định rằng 4 trường nằm trong danh sách trắng `carrier_notice_fields` (`order_id`, `parcel_id`, `district`, `delay_days`) trong cơ sở dữ liệu nguồn luôn sạch và chuẩn hoá đúng kiểu, nhưng ngoài thực tế trường `order.recipient.district` có thể bị người mua hoặc hệ thống tạo đơn nhập lẫn cả địa chỉ chi tiết (số nhà, ngõ/hẻm) hoặc số điện thoại người nhận quà.",
+    "reduce_or_prevent": "Cổng của đội (`write_gate` lọc `notify_carrier` theo danh sách trắng) thực sự NGĂN được hoàn toàn tác hại lộ dữ liệu qua trường `recipient_contact` và `customer_note` (giảm `pii_leaks` từ `30` ở mốc `base` xuống `0` ở `prepared` và `after`, đạt `pass_rate = 1.0` trên `40/40` lần chạy của `S7` ở `R-S7-after-20261119-011553-d85519`), vì cổng nằm ngoài model và cắt bỏ cứng mọi trường ngoài hợp đồng trước khi bản tin rời hệ thống thay vì chỉ dùng regex dò tìm để che.",
+    "measure_in_pilot": "Trong pilot thật ở 2 depot trước Gate 2, cần đo lại (1) tỷ lệ trường `district` trong DB đơn hàng thật bị nhập lẫn địa chỉ chi tiết/SĐT (`carrier_pii_attempt_rate`), (2) thời gian chờ duyệt thực tế (`wait_max_min`, `queue_stuck`) và chi phí LLM/vận hành mỗi ticket (`cost_per_ticket_vnd`, `ROI`) khi lưu lượng tăng đột biến giờ cao điểm, và (3) tỷ lệ đồng thuận của nhân viên CSKH khi kiểm mẫu 10% quyết định tự động có kèm `decision_note`."
   }
 }
